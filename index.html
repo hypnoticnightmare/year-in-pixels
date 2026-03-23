@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aesthetic Year in Pixels</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+        :root {
+            /* Palette Mood (Pastello Elegante) */
+            --mood-excited: #FFB5A7; /* Corallo chiaro */
+            --mood-happy: #C1E1C1;   /* Verde salvia */
+            --mood-neutral: #E8DFF5; /* Lilla grigiastro */
+            --mood-sad: #A0C4FF;     /* Azzurro polvere */
+            --mood-terrible: #BDB2FF;/* Viola pastello */
+            --mood-none: rgba(150, 150, 150, 0.1); /* Vuoto */
+
+            /* Tema Base: Light (Default) */
+            --page-bg: #FFFFFF;
+            --text-main: #5C5552;
+            --text-muted: #9E9490;
+            --modal-bg: rgba(255, 255, 255, 0.75);
+            --modal-border: rgba(255, 255, 255, 0.5);
+            --input-bg: #FCFAFA;
+            --input-border: #E6DCD9;
+        }
+
+        [data-theme="beige"] {
+            --page-bg: #F7F6F3;
+            --modal-bg: rgba(247, 246, 243, 0.75);
+            --modal-border: rgba(255, 255, 255, 0.4);
+            --input-bg: #F0EAE6;
+            --input-border: #DCD3CE;
+        }
+
+        [data-theme="dark"] {
+            --page-bg: #191919;
+            --text-main: #EBEBEB;
+            --text-muted: #888888;
+            --modal-bg: rgba(40, 40, 40, 0.75);
+            --modal-border: rgba(80, 80, 80, 0.5);
+            --input-bg: #2C2C2C;
+            --input-border: #444444;
+            --mood-none: rgba(255, 255, 255, 0.05);
+        }
+
+        body, html {
+            margin: 0; padding: 20px 10px;
+            background-color: var(--page-bg);
+            font-family: 'Poppins', sans-serif; color: var(--text-main);
+            display: flex; flex-direction: column; align-items: center;
+            transition: background-color 0.4s ease;
+            overflow-x: hidden;
+        }
+
+        /* --- CONTROLLI (Sfondo) --- */
+        .controls {
+            display: flex; gap: 15px; margin-bottom: 25px;
+            background: var(--mood-none); padding: 8px 16px; border-radius: 20px;
+        }
+        .theme-dot {
+            width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        .theme-dot:hover { transform: scale(1.2); }
+
+        /* --- LEGENDA --- */
+        .legend {
+            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+            margin-bottom: 30px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
+        .legend-color { width: 12px; height: 12px; border-radius: 4px; }
+
+        /* --- HEATMAP (Griglia) --- */
+        .heatmap-wrapper {
+            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 900px;
+        }
+        .month-container {
+            display: flex; flex-direction: column; gap: 5px;
+        }
+        .month-title {
+            font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);
+            margin-bottom: 2px; text-align: left; letter-spacing: 1px;
+        }
+        .days-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+        }
+        
+        /* IL PIXEL DEL GIORNO */
+        .day-pixel {
+            width: clamp(12px, 2vw, 16px); height: clamp(12px, 2vw, 16px);
+            background-color: var(--mood-none); border-radius: 4px;
+            cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s ease;
+            position: relative;
+        }
+        .day-pixel:hover {
+            transform: scale(1.2); box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2;
+        }
+        
+        /* Puntino che indica la presenza di una nota */
+        .day-pixel.has-note::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 3px; height: 3px;
+            background-color: rgba(255,255,255,0.8); border-radius: 50%;
+        }
+        [data-theme="light"] .day-pixel.has-note::after, [data-theme="beige"] .day-pixel.has-note::after {
+            background-color: rgba(0,0,0,0.3);
+        }
+
+        /* --- FINESTRA MODALE (Glassmorphism) --- */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(8px); /* Effetto vetro sfocato */
+            -webkit-backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.show { display: flex; opacity: 1; }
+
+        .modal-content {
+            background: var(--modal-bg); border: 1px solid var(--modal-border);
+            padding: 25px; border-radius: 20px; width: 90%; max-width: 320px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+            transform: translateY(20px); transition: transform 0.3s ease;
+        }
+        .modal-overlay.show .modal-content { transform: translateY(0); }
+
+        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
+        
+        .mood-selector {
+            display: flex; justify-content: center; gap: 12px; margin-bottom: 20px;
+        }
+        .mood-option {
+            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: all 0.2s ease;
+        }
+        .mood-option.selected { transform: scale(1.1); border-color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .mood-option:hover { transform: scale(1.1); }
+
+        .note-area {
+            width: 100%; height: 100px; padding: 12px; box-sizing: border-box;
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 13px;
+            color: var(--text-main); resize: none; margin-bottom: 20px; outline: none;
+            transition: border-color 0.3s ease;
+        }
+        .note-area:focus { border-color: var(--text-muted); }
+        .note-area::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; }
+        .btn {
+            padding: 8px 20px; border-radius: 10px; font-family: 'Poppins', sans-serif;
+            font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease;
+        }
+        .btn-cancel { background: var(--mood-none); color: var(--text-main); }
+        .btn-save { background: var(--text-main); color: var(--page-bg); }
+        .btn:hover { transform: translateY(-2px); opacity: 0.9; }
+
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <div class="theme-dot" style="background: #FFFFFF;" onclick="setTheme('light')" title="Tema Chiaro"></div>
+        <div class="theme-dot" style="background: #F7F6F3;" onclick="setTheme('beige')" title="Tema Beige"></div>
+        <div class="theme-dot" style="background: #191919; border-color:#555;" onclick="setTheme('dark')" title="Tema Scuro"></div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item"><div class="legend-color" style="background: var(--mood-excited)"></div> Excited</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--mood-happy)"></div> Happy</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--mood-neutral)"></div> Neutral</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--mood-sad)"></div> Sad</div>
+        <div class="legend-item"><div class="legend-color" style="background: var(--mood-terrible)"></div> Terrible</div>
+    </div>
+
+    <div class="heatmap-wrapper" id="heatmap"></div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-date">Giorno</div>
+            
+            <div class="mood-selector" id="mood-selector">
+                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)" title="Excited"></div>
+                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)" title="Happy"></div>
+                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)" title="Neutral"></div>
+                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)" title="Sad"></div>
+                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)" title="Terrible"></div>
+                <div class="mood-option" data-mood="none" style="background: var(--mood-none); border: 1px dashed var(--text-muted);" title="Rimuovi"></div>
+            </div>
+
+            <textarea class="note-area" id="note-input" placeholder="Perché mi sento così oggi? Scrivi un appunto..."></textarea>
+            
+            <div class="btn-group">
+                <button class="btn btn-cancel" onclick="closeModal()">Annulla</button>
+                <button class="btn btn-save" onclick="saveData()">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SETUP INIZIALE E DATI ---
+        const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+        // Usiamo 29 per Febbraio così copriamo anche gli anni bisestili senza problemi
+        const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; 
+        
+        let currentDayId = null;
+        let selectedMood = 'none';
+
+        // Recupera tutti i salvataggi dal browser
+        const savedData = JSON.parse(localStorage.getItem('notion-year-in-pixels')) || {};
+
+        // --- 2. GESTIONE TEMI ---
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('pixels-theme', theme);
+        }
+        setTheme(localStorage.getItem('pixels-theme') || 'light');
+
+        // --- 3. GENERAZIONE DELLA HEATMAP ---
+        const heatmap = document.getElementById('heatmap');
+
+        for (let m = 0; m < 12; m++) {
+            // Crea il blocco del mese
+            const monthDiv = document.createElement('div');
+            monthDiv.className = 'month-container';
+            
+            const monthTitle = document.createElement('div');
+            monthTitle.className = 'month-title';
+            monthTitle.innerText = months[m];
+            monthDiv.appendChild(monthTitle);
+
+            const grid = document.createElement('div');
+            grid.className = 'days-grid';
+
+            // Genera i giorni di quel mese
+            for (let d = 1; d <= daysInMonth[m]; d++) {
+                const dayId = `${m}-${d}`; // Es. "0-15" per 15 Gennaio
+                const pixel = document.createElement('div');
+                pixel.className = 'day-pixel';
+                pixel.id = `pixel-${dayId}`;
+                pixel.title = `${d} ${months[m]}`; // Mostra la data se ci passi sopra col mouse
+
+                // Carica i dati salvati per colorare il pixel e mettere il puntino della nota
+                if (savedData[dayId]) {
+                    if (savedData[dayId].mood && savedData[dayId].mood !== 'none') {
+                        pixel.style.backgroundColor = `var(--mood-${savedData[dayId].mood})`;
+                    }
+                    if (savedData[dayId].note && savedData[dayId].note.trim() !== "") {
+                        pixel.classList.add('has-note');
+                    }
+                }
+
+                // Cliccando sul pixel si apre la modale
+                pixel.addEventListener('click', () => openModal(m, d, dayId));
+                grid.appendChild(pixel);
+            }
+            monthDiv.appendChild(grid);
+            heatmap.appendChild(monthDiv);
+        }
+
+        // --- 4. GESTIONE FINESTRA MODALE ---
+        const modal = document.getElementById('modal');
+        const noteInput = document.getElementById('note-input');
+        const moodOptions = document.querySelectorAll('.mood-option');
+
+        function openModal(monthIndex, day, dayId) {
+            currentDayId = dayId;
+            document.getElementById('modal-date').innerText = `${day} ${months[monthIndex]}`;
+            
+            // Carica dati del giorno
+            const dayData = savedData[dayId] || { mood: 'none', note: '' };
+            selectedMood = dayData.mood;
+            noteInput.value = dayData.note;
+
+            // Aggiorna la selezione visiva dei pallini dell'umore
+            updateMoodSelectionUI();
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            modal.classList.remove('show');
+        }
+
+        // Gestisce il click sui pallini dell'umore dentro la modale
+        moodOptions.forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                selectedMood = e.target.getAttribute('data-mood');
+                updateMoodSelectionUI();
+            });
+        });
+
+        function updateMoodSelectionUI() {
+            moodOptions.forEach(opt => opt.classList.remove('selected'));
+            const activeOpt = document.querySelector(`.mood-option[data-mood="${selectedMood}"]`);
+            if(activeOpt) activeOpt.classList.add('selected');
+        }
+
+        // Salva i dati e aggiorna il pixel
+        function saveData() {
+            const noteText = noteInput.value;
+            
+            // Aggiorna l'oggetto in memoria
+            savedData[currentDayId] = {
+                mood: selectedMood,
+                note: noteText
+            };
+            
+            // Salva nel browser
+            localStorage.setItem('notion-year-in-pixels', JSON.stringify(savedData));
+
+            // Aggiorna visivamente il pixel sulla dashboard
+            const pixel = document.getElementById(`pixel-${currentDayId}`);
+            
+            if (selectedMood !== 'none') {
+                pixel.style.backgroundColor = `var(--mood-${selectedMood})`;
+            } else {
+                pixel.style.backgroundColor = 'var(--mood-none)';
+            }
+
+            if (noteText.trim() !== "") {
+                pixel.classList.add('has-note');
+            } else {
+                pixel.classList.remove('has-note');
+            }
+
+            closeModal();
+        }
+
+        // Permette di chiudere la modale cliccando fuori (nello sfondo sfocato)
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+    </script>
+</body>
+</html>
