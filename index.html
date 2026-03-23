@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year in Pixels</title>
+    <title>GitHub Style Year in Pixels 2.1</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -12,19 +12,20 @@
             --page-bg: #FFFFFF;
             --text-main: #5C5552;
             --text-muted: #9E9490;
-            --modal-bg: rgba(255, 255, 255, 0.75);
+            --modal-bg: rgba(255, 255, 255, 0.85);
             --modal-border: rgba(255, 255, 255, 0.5);
             --input-bg: #FCFAFA;
             --input-border: #E6DCD9;
             --mood-none: #ebedf0; /* Colore casella vuota chiaro */
-            --note-dot: rgba(0, 0, 0, 0.4);
+            --note-dot: rgba(255, 255, 255, 0.6); /* Puntino chiaro su pixel scuro */
 
-            /* PALETTE PREDEFINITA: Verde (Stile GitHub) */
-            --mood-terrible: #d3f9d8; /* Livello 1 (Chiarissimo) */
-            --mood-sad: #8ce99a;      /* Livello 2 */
+            /* PALETTE PREDEFINITA: Verde (Stile GitHub, INVERTITA) */
+            /* Ora 'excited' è chiaro, 'terrible' è scuro */
+            --mood-excited: #d3f9d8;  /* Livello 1 (Chiarissimo) */
+            --mood-happy: #8ce99a;    /* Livello 2 */
             --mood-neutral: #40c057;  /* Livello 3 */
-            --mood-happy: #2b8a3e;    /* Livello 4 */
-            --mood-excited: #085b10;  /* Livello 5 (Scurissimo) */
+            --mood-sad: #2b8a3e;      /* Livello 4 */
+            --mood-terrible: #085b10; /* Livello 5 (Scurissimo) */
         }
 
         /* --- TEMI DI SFONDO (Light, Beige, Dark) --- */
@@ -33,7 +34,7 @@
             --modal-bg: rgba(247, 246, 243, 0.85);
             --modal-border: rgba(255, 255, 255, 0.4);
             --input-bg: #F0EAE6; --input-border: #DCD3CE;
-            --mood-none: #E6DFDB; --note-dot: rgba(0, 0, 0, 0.4);
+            --mood-none: #E6DFDB; --note-dot: rgba(255, 255, 255, 0.6);
         }
 
         [data-theme="dark"] {
@@ -43,30 +44,18 @@
             --modal-border: rgba(80, 80, 80, 0.5);
             --input-bg: #2C2C2C; --input-border: #444444;
             --mood-none: #2d333b; /* Colore casella vuota scuro */
-            --note-dot: rgba(255, 255, 255, 0.8);
+            --note-dot: rgba(0, 0, 0, 0.4); /* Puntino scuro su pixel chiaro */
         }
 
-        /* --- PALETTE COLORI (Scale Monocromatiche) --- */
+        /* --- PALETTE COLORI (Scale Monocromatiche INVERTITE) --- */
         [data-palette="blue"] {
-            --mood-terrible: #d0ebff;
-            --mood-sad: #74c0fc;
-            --mood-neutral: #228be6;
-            --mood-happy: #1864ab;
-            --mood-excited: #0b2b5e;
+            --mood-excited: #d0ebff; --mood-happy: #74c0fc; --mood-neutral: #228be6; --mood-sad: #1864ab; --mood-terrible: #0b2b5e;
         }
         [data-palette="purple"] {
-            --mood-terrible: #f3d9fa;
-            --mood-sad: #e599f7;
-            --mood-neutral: #cc5de8;
-            --mood-happy: #9c36b5;
-            --mood-excited: #501a61;
+            --mood-excited: #f3d9fa; --mood-happy: #e599f7; --mood-neutral: #cc5de8; --mood-sad: #9c36b5; --mood-terrible: #501a61;
         }
         [data-palette="pink"] {
-            --mood-terrible: #ffdeeb;
-            --mood-sad: #faa2c1;
-            --mood-neutral: #f06595;
-            --mood-happy: #a61e4d;
-            --mood-excited: #5c0b27;
+            --mood-excited: #ffdeeb; --mood-happy: #faa2c1; --mood-neutral: #f06595; --mood-sad: #a61e4d; --mood-terrible: #5c0b27;
         }
 
         body, html {
@@ -94,7 +83,7 @@
         }
         .color-dot:hover { transform: scale(1.2); }
 
-        /* --- LEGENDA --- */
+        /* --- LEGENDA (Aggiornata per la scala invertita) --- */
         .legend {
             display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
             margin-bottom: 15px; font-size: 11px; font-weight: 500; text-transform: uppercase;
@@ -102,36 +91,40 @@
         .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
         .legend-color { width: 12px; height: 12px; border-radius: 3px; }
 
-        /* --- GRAFICO GITHUB STYLE --- */
+        /* --- GRAFICO GITHUB STYLE (Corretto) --- */
         .graph-wrapper {
-            display: flex; align-items: flex-end; gap: 8px;
-            max-width: 100%; overflow-x: auto; padding-bottom: 15px;
+            width: 100%; max-width: 900px;
+            display: flex; flex-direction: column; gap: 4px;
+            position: relative;
         }
         
-        /* Giorni della settimana a sinistra */
-        .day-labels {
-            display: flex; flex-direction: column; justify-content: space-between;
-            height: 108px; /* 7 righe da 12px + 6 gap da 4px */
-            font-size: 10px; color: var(--text-muted); padding-bottom: 2px;
-            position: relative; width: 25px;
+        /* Contenitore Mesi */
+        .month-labels-container {
+            height: 20px; width: 100%;
+            position: relative; margin-bottom: 2px;
+            overflow-x: auto; /* Permette lo scorrimento dei mesi */
+            white-space: nowrap; /* Mantiene i mesi su una riga */
+            scrollbar-width: none; /* Nasconde scrollbar su Firefox */
         }
-        .day-labels span { position: absolute; height: 12px; line-height: 12px; }
-        .day-labels span:nth-child(1) { top: 16px; } /* Martedì (1° indice partendo da 0) */
-        .day-labels span:nth-child(2) { top: 48px; } /* Giovedì (3° indice) */
-        .day-labels span:nth-child(3) { top: 80px; } /* Sabato (5° indice) */
+        .month-labels-container::-webkit-scrollbar { display: none; } /* Nasconde scrollbar su Chrome */
 
-        /* Contenitore Mesi e Griglia */
-        .graph-scrollable { position: relative; display: flex; flex-direction: column; }
+        .month-label {
+            position: absolute; font-size: 10px; font-weight: 500; color: var(--text-muted); bottom: 0;
+            display: inline-block;
+        }
         
-        .month-labels { position: relative; height: 20px; width: 100%; margin-bottom: 4px; }
-        .month-label { position: absolute; font-size: 10px; font-weight: 500; color: var(--text-muted); bottom: 0; }
+        /* Contenitore dei pixel che scorre */
+        .graph-scrollable {
+            width: 100%; overflow-x: auto; padding-bottom: 10px;
+        }
         
-        /* La vera e propria matrice che scorre in orizzontale */
+        /* La matrice di pixel */
         .pixels-grid {
             display: grid;
-            grid-template-rows: repeat(7, 12px); /* 7 righe, una per ogni giorno della settimana */
+            grid-template-rows: repeat(7, 12px); /* 7 righe fissee */
             grid-auto-flow: column; /* Scorre aggiungendo colonne verso destra! */
             gap: 4px;
+            width: max-content; /* Permette alla griglia di espandersi orizzontalmente */
         }
         
         /* IL PIXEL DEL GIORNO */
@@ -140,6 +133,7 @@
             background-color: var(--mood-none);
             cursor: pointer; transition: transform 0.1s ease;
             position: relative;
+            box-sizing: border-box;
         }
         .day-pixel:not(.empty):hover {
             transform: scale(1.3); box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2;
@@ -174,6 +168,7 @@
 
         .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
         
+        /* Selettore mood invertito visivamente nella modale */
         .mood-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .mood-option {
             width: 25px; height: 25px; border-radius: 5px; cursor: pointer;
@@ -212,10 +207,10 @@
         <div class="picker-separator"></div>
         <div class="picker-group">
             <span class="picker-label">Palette:</span>
-            <div class="color-dot" style="background: #40c057;" onclick="setPalette('green')"></div>
-            <div class="color-dot" style="background: #228be6;" onclick="setPalette('blue')"></div>
-            <div class="color-dot" style="background: #cc5de8;" onclick="setPalette('purple')"></div>
-            <div class="color-dot" style="background: #f06595;" onclick="setPalette('pink')"></div>
+            <div class="color-dot" style="background: #085b10;" onclick="setPalette('green')"></div>
+            <div class="color-dot" style="background: #0b2b5e;" onclick="setPalette('blue')"></div>
+            <div class="color-dot" style="background: #501a61;" onclick="setPalette('purple')"></div>
+            <div class="color-dot" style="background: #5c0b27;" onclick="setPalette('pink')"></div>
         </div>
     </div>
 
@@ -230,13 +225,8 @@
     </div>
 
     <div class="graph-wrapper">
-        <div class="day-labels">
-            <span>Mar</span>
-            <span>Gio</span>
-            <span>Sab</span>
-        </div>
+        <div class="month-labels-container" id="month-labels"></div>
         <div class="graph-scrollable">
-            <div class="month-labels" id="month-labels"></div>
             <div class="pixels-grid" id="pixels-grid"></div>
         </div>
     </div>
@@ -245,12 +235,12 @@
         <div class="modal-content">
             <div class="modal-title" id="modal-date">Data</div>
             <div class="mood-selector">
-                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)"></div>
-                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)"></div>
-                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)"></div>
-                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)"></div>
-                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)"></div>
-                <div class="mood-option" data-mood="none" style="background: transparent; border: 1px dashed var(--text-muted);"></div>
+                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)" title="Terrible"></div>
+                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)" title="Sad"></div>
+                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)" title="Neutral"></div>
+                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)" title="Happy"></div>
+                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)" title="Excited"></div>
+                <div class="mood-option" data-mood="none" style="background: transparent; border: 1px dashed var(--text-muted);" title="Rimuovi"></div>
             </div>
             <textarea class="note-area" id="note-input" placeholder="Aggiungi una nota a questa giornata..."></textarea>
             <div class="btn-group">
@@ -274,8 +264,7 @@
         function setPalette(palette) {
             document.documentElement.setAttribute('data-palette', palette);
             localStorage.setItem('pixels-palette', palette);
-            // Forza aggiornamento colori dei pixel già colorati
-            updateGridColors(); 
+            updateGridColors(); // Forza aggiornamento colori dei pixel già colorati
         }
         
         setTheme(localStorage.getItem('pixels-theme') || 'light');
@@ -285,34 +274,33 @@
         const grid = document.getElementById('pixels-grid');
         const monthLabels = document.getElementById('month-labels');
         
-        // Calcolo date dinamico sull'anno in corso
         const year = new Date().getFullYear();
         const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
         const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
         const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
 
         // Trova da che giorno inizia l'anno (0=Domenica, 1=Lunedì)
-        // La griglia va da Lunedì a Domenica
         let firstDay = new Date(year, 0, 1).getDay();
-        let startOffset = firstDay === 0 ? 6 : firstDay - 1; 
+        let startOffset = firstDay === 0 ? 6 : firstDay - 1; // Allinea alla griglia Lun-Dom
 
-        // Riempi i buchi vuoti prima dell'1 Gennaio (es. se inizia di Mercoledì, Lun e Mar sono vuoti)
+        // Riempi i buchi vuoti prima dell'1 Gennaio
         for (let i = 0; i < startOffset; i++) {
             let empty = document.createElement('div');
             empty.className = 'day-pixel empty';
             grid.appendChild(empty);
         }
 
-        let dayOfYear = 0;
+        let totalDays = 0;
+        let monthOffsetAccumulator = startOffset;
 
         for (let m = 0; m < 12; m++) {
-            // Calcola in che colonna (settimana) posizionare la scritta del mese
-            let weekIndex = Math.floor((dayOfYear + startOffset) / 7);
+            // Posiziona i mesi basandosi sulle settimane (colonne)
+            let currentWeekIndex = Math.floor(monthOffsetAccumulator / 7);
             let label = document.createElement('span');
             label.className = 'month-label';
             label.innerText = months[m];
             // Larghezza colonna = 12px + 4px gap = 16px
-            label.style.left = `calc(${weekIndex} * 16px)`;
+            label.style.left = `${currentWeekIndex * 16}px`;
             monthLabels.appendChild(label);
 
             for (let d = 1; d <= daysInMonth[m]; d++) {
@@ -320,15 +308,14 @@
                 const pixel = document.createElement('div');
                 pixel.className = 'day-pixel';
                 pixel.id = `pixel-${dayId}`;
-                
-                // HOVER NATIVO: Al passaggio del mouse mostra data ed estensione
-                pixel.title = `${d} ${months[m]}`; 
+                pixel.title = `${d} ${months[m]} ${year}`; // HOVER NATIVO
 
                 pixel.addEventListener('click', () => openModal(m, d, dayId));
                 grid.appendChild(pixel);
                 
-                dayOfYear++;
+                totalDays++;
             }
+            monthOffsetAccumulator += daysInMonth[m];
         }
 
         // --- GESTIONE COLORI E MODALE ---
@@ -341,7 +328,6 @@
                     
                     if (savedData[dayId]) {
                         if (savedData[dayId].mood && savedData[dayId].mood !== 'none') {
-                            // Legge il colore vivo dalla variabile CSS della palette scelta
                             pixel.style.backgroundColor = `var(--mood-${savedData[dayId].mood})`;
                         } else {
                             pixel.style.backgroundColor = 'var(--mood-none)';
@@ -351,13 +337,16 @@
                         } else {
                             pixel.classList.remove('has-note');
                         }
+                    } else {
+                        // Reset per giorni non compilati
+                        pixel.style.backgroundColor = 'var(--mood-none)';
+                        pixel.classList.remove('has-note');
                     }
                 }
             }
         }
 
-        // Coloriamo la griglia al primissimo caricamento
-        updateGridColors();
+        updateGridColors(); // Coloriamo la griglia al caricamento
 
         const modal = document.getElementById('modal');
         const noteInput = document.getElementById('note-input');
