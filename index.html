@@ -219,4 +219,182 @@
     </div>
 
     <div class="legend">
-        <span style="color: var(--
+        <span style="color: var(--text-muted); font-size: 10px; margin-right: 5px;">Terrible</span>
+        <div class="legend-color" style="background: var(--mood-terrible)"></div>
+        <div class="legend-color" style="background: var(--mood-sad)"></div>
+        <div class="legend-color" style="background: var(--mood-neutral)"></div>
+        <div class="legend-color" style="background: var(--mood-happy)"></div>
+        <div class="legend-color" style="background: var(--mood-excited)"></div>
+        <span style="color: var(--text-muted); font-size: 10px; margin-left: 5px;">Excited</span>
+    </div>
+
+    <div class="graph-wrapper">
+        <div class="graph-inner">
+            <div class="month-labels-container" id="month-labels"></div>
+            <div class="pixels-grid" id="pixels-grid"></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-date">Data</div>
+            <div class="mood-selector">
+                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)" title="Terrible"></div>
+                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)" title="Sad"></div>
+                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)" title="Neutral"></div>
+                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)" title="Happy"></div>
+                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)" title="Excited"></div>
+                <div class="mood-option" data-mood="none" style="background: transparent; border: 1px dashed var(--text-muted);" title="Rimuovi"></div>
+            </div>
+            <textarea class="note-area" id="note-input" placeholder="Aggiungi una nota a questa giornata..."></textarea>
+            <div class="btn-group">
+                <button class="btn btn-cancel" onclick="closeModal()">Annulla</button>
+                <button class="btn btn-save" onclick="saveData()">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. CARICAMENTO DEL CALENDARIO
+        const year = new Date().getFullYear();
+        const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+
+        // 2. RECUPERO DATI
+        let savedData = {};
+        try {
+            savedData = JSON.parse(localStorage.getItem('notion-year-in-pixels')) || {};
+        } catch(e) {
+            console.error("Errore nel caricamento dei dati", e);
+        }
+        
+        let currentDayId = null;
+        let selectedMood = 'none';
+
+        // 3. AGGIORNAMENTO COLORI
+        function updateGridColors() {
+            for (let m = 0; m < 12; m++) {
+                for (let d = 1; d <= daysInMonth[m]; d++) {
+                    const dayId = `${m}-${d}`;
+                    const pixel = document.getElementById(`pixel-${dayId}`);
+                    if (!pixel) continue;
+                    
+                    if (savedData[dayId]) {
+                        if (savedData[dayId].mood && savedData[dayId].mood !== 'none') {
+                            pixel.style.backgroundColor = `var(--mood-${savedData[dayId].mood})`;
+                        } else {
+                            pixel.style.backgroundColor = 'var(--mood-none)';
+                        }
+                        if (savedData[dayId].note && savedData[dayId].note.trim() !== "") {
+                            pixel.classList.add('has-note');
+                        } else {
+                            pixel.classList.remove('has-note');
+                        }
+                    } else {
+                        pixel.style.backgroundColor = 'var(--mood-none)';
+                        pixel.classList.remove('has-note');
+                    }
+                }
+            }
+        }
+
+        // 4. GESTIONE BOTTONI
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('pixels-theme', theme);
+        }
+        function setPalette(palette) {
+            document.documentElement.setAttribute('data-palette', palette);
+            localStorage.setItem('pixels-palette', palette);
+            // Non serve nemmeno forzare updateGridColors() qui per i pixel, ci pensa il CSS!
+        }
+        
+        // 5. GENERAZIONE DELLA GRIGLIA
+        const grid = document.getElementById('pixels-grid');
+        const monthLabels = document.getElementById('month-labels');
+        
+        grid.innerHTML = ''; 
+        monthLabels.innerHTML = '';
+
+        let firstDay = new Date(year, 0, 1).getDay();
+        let startOffset = firstDay === 0 ? 6 : firstDay - 1; 
+
+        for (let i = 0; i < startOffset; i++) {
+            let empty = document.createElement('div');
+            empty.className = 'day-pixel empty';
+            grid.appendChild(empty);
+        }
+
+        let monthOffsetAccumulator = startOffset;
+
+        for (let m = 0; m < 12; m++) {
+            let currentWeekIndex = Math.floor(monthOffsetAccumulator / 7);
+            let label = document.createElement('span');
+            label.className = 'month-label';
+            label.innerText = months[m];
+            label.style.left = `${currentWeekIndex * 16}px`;
+            monthLabels.appendChild(label);
+
+            for (let d = 1; d <= daysInMonth[m]; d++) {
+                const dayId = `${m}-${d}`;
+                const pixel = document.createElement('div');
+                pixel.className = 'day-pixel';
+                pixel.id = `pixel-${dayId}`;
+                pixel.title = `${d} ${months[m]} ${year}`;
+
+                pixel.addEventListener('click', () => openModal(m, d, dayId));
+                grid.appendChild(pixel);
+            }
+            monthOffsetAccumulator += daysInMonth[m];
+        }
+
+        // 6. AVVIO (Legge dai salvataggi o imposta i default su 'html')
+        setTheme(localStorage.getItem('pixels-theme') || 'light');
+        setPalette(localStorage.getItem('pixels-palette') || 'green');
+        
+        // Colora la griglia coi dati salvati
+        updateGridColors();
+
+        // --- GESTIONE MODALE ---
+        const modal = document.getElementById('modal');
+        const noteInput = document.getElementById('note-input');
+        const moodOptions = document.querySelectorAll('.mood-option');
+
+        function openModal(monthIndex, day, dayId) {
+            currentDayId = dayId;
+            document.getElementById('modal-date').innerText = `${day} ${months[monthIndex]} ${year}`;
+            
+            const dayData = savedData[dayId] || { mood: 'none', note: '' };
+            selectedMood = dayData.mood;
+            noteInput.value = dayData.note;
+
+            moodOptions.forEach(opt => opt.classList.remove('selected'));
+            const activeOpt = document.querySelector(`.mood-option[data-mood="${selectedMood}"]`);
+            if(activeOpt) activeOpt.classList.add('selected');
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() { modal.classList.remove('show'); }
+
+        moodOptions.forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                selectedMood = e.target.getAttribute('data-mood');
+                moodOptions.forEach(o => o.classList.remove('selected'));
+                e.target.classList.add('selected');
+            });
+        });
+
+        function saveData() {
+            savedData[currentDayId] = { mood: selectedMood, note: noteInput.value };
+            localStorage.setItem('notion-year-in-pixels', JSON.stringify(savedData));
+            updateGridColors(); 
+            closeModal();
+        }
+
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+    </script>
+</body>
+</html>
