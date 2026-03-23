@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Year in Pixels</title>
+    <title>GitHub Style Year in Pixels - Final Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -17,7 +17,7 @@
             --input-border: #E6DCD9;
             --mood-none: #ebedf0; 
 
-            /* Variabili per la responsività: minimo, elastico (vw), massimo */
+            /* Variabili per la responsività */
             --cell-size: clamp(4px, 1.4vw, 12px);
             --cell-gap: clamp(1px, 0.4vw, 4px);
         }
@@ -184,7 +184,8 @@
 
     </style>
 </head>
-<body data-palette="green">
+
+<body>
 
     <div class="controls-container">
         <div class="picker-group">
@@ -377,7 +378,6 @@
                 let label = document.createElement('span');
                 label.className = 'month-label';
                 label.innerText = months[m];
-                // Posizionamento matematico flessibile tramite CSS calc()
                 label.style.left = `calc(${currentWeekIndex} * (var(--cell-size) + var(--cell-gap)))`;
                 monthLabels.appendChild(label);
 
@@ -406,6 +406,7 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('pixels-theme', theme);
         }
+        
         function setPalette(palette) {
             document.documentElement.setAttribute('data-palette', palette);
             localStorage.setItem('pixels-palette', palette);
