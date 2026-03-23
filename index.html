@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Style Year in Pixels 2.4</title>
+    <title>GitHub Style Year in Pixels 2.5</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -38,37 +38,17 @@
         }
 
         /* --- PALETTE COLORI (Scale: Scuro = Terrible, Chiaro = Excited) --- */
-        /* Verde */
         [data-palette="green"] {
-            --mood-excited: #d3f9d8; 
-            --mood-happy: #8ce99a;   
-            --mood-neutral: #40c057; 
-            --mood-sad: #2b8a3e;     
-            --mood-terrible: #085b10;
+            --mood-excited: #d3f9d8; --mood-happy: #8ce99a; --mood-neutral: #40c057; --mood-sad: #2b8a3e; --mood-terrible: #085b10;
         }
-        /* Blu */
         [data-palette="blue"] {
-            --mood-excited: #d0ebff; 
-            --mood-happy: #74c0fc; 
-            --mood-neutral: #228be6; 
-            --mood-sad: #1864ab; 
-            --mood-terrible: #0b2b5e;
+            --mood-excited: #d0ebff; --mood-happy: #74c0fc; --mood-neutral: #228be6; --mood-sad: #1864ab; --mood-terrible: #0b2b5e;
         }
-        /* Viola */
         [data-palette="purple"] {
-            --mood-excited: #f3d9fa; 
-            --mood-happy: #e599f7; 
-            --mood-neutral: #cc5de8; 
-            --mood-sad: #9c36b5; 
-            --mood-terrible: #501a61;
+            --mood-excited: #f3d9fa; --mood-happy: #e599f7; --mood-neutral: #cc5de8; --mood-sad: #9c36b5; --mood-terrible: #501a61;
         }
-        /* Rosa */
         [data-palette="pink"] {
-            --mood-excited: #ffdeeb; 
-            --mood-happy: #faa2c1; 
-            --mood-neutral: #f06595; 
-            --mood-sad: #a61e4d; 
-            --mood-terrible: #5c0b27;
+            --mood-excited: #ffdeeb; --mood-happy: #faa2c1; --mood-neutral: #f06595; --mood-sad: #a61e4d; --mood-terrible: #5c0b27;
         }
 
         body, html {
@@ -106,9 +86,33 @@
 
         /* --- GRAFICO GITHUB STYLE --- */
         .graph-wrapper {
+            display: flex;
             width: 100%; max-width: 900px;
             overflow-x: auto; padding-bottom: 10px;
             scrollbar-width: thin;
+        }
+
+        /* Etichette dei giorni a sinistra (1-7) */
+        .day-labels {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 24px; /* Allinea perfettamente con l'inizio della griglia sottostante i mesi */
+            padding-right: 8px;
+            position: sticky; /* Rimane visibile mentre scorri orizzontalmente */
+            left: 0;
+            background-color: var(--page-bg);
+            z-index: 10;
+            transition: background-color 0.4s ease;
+        }
+
+        .day-label {
+            height: 12px;
+            line-height: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-align: right;
         }
         
         .graph-inner {
@@ -198,8 +202,7 @@
 
     </style>
 </head>
-
-<body>
+<body data-palette="green">
 
     <div class="controls-container">
         <div class="picker-group">
@@ -229,6 +232,15 @@
     </div>
 
     <div class="graph-wrapper">
+        <div class="day-labels">
+            <div class="day-label" title="Lunedì">1</div>
+            <div class="day-label" title="Martedì">2</div>
+            <div class="day-label" title="Mercoledì">3</div>
+            <div class="day-label" title="Giovedì">4</div>
+            <div class="day-label" title="Venerdì">5</div>
+            <div class="day-label" title="Sabato">6</div>
+            <div class="day-label" title="Domenica">7</div>
+        </div>
         <div class="graph-inner">
             <div class="month-labels-container" id="month-labels"></div>
             <div class="pixels-grid" id="pixels-grid"></div>
@@ -307,29 +319,32 @@
         function setPalette(palette) {
             document.documentElement.setAttribute('data-palette', palette);
             localStorage.setItem('pixels-palette', palette);
-            // Non serve nemmeno forzare updateGridColors() qui per i pixel, ci pensa il CSS!
         }
         
-        // 5. GENERAZIONE DELLA GRIGLIA
+        // 5. GENERAZIONE DELLA GRIGLIA ALLINEATA
         const grid = document.getElementById('pixels-grid');
         const monthLabels = document.getElementById('month-labels');
         
         grid.innerHTML = ''; 
         monthLabels.innerHTML = '';
 
+        // Trova in che giorno della settimana cade il 1° Gennaio (0=Domenica, 1=Lunedì, ecc.)
         let firstDay = new Date(year, 0, 1).getDay();
+        // Calcola quante celle vuote inserire affinché il 1° Gennaio slitti sulla riga giusta
         let startOffset = firstDay === 0 ? 6 : firstDay - 1; 
 
+        // Riempi le celle precedenti al 1° Gennaio con pixel trasparenti
         for (let i = 0; i < startOffset; i++) {
             let empty = document.createElement('div');
             empty.className = 'day-pixel empty';
             grid.appendChild(empty);
         }
 
-        let monthOffsetAccumulator = startOffset;
+        let daysPassedCounter = 0;
 
         for (let m = 0; m < 12; m++) {
-            let currentWeekIndex = Math.floor(monthOffsetAccumulator / 7);
+            // Posiziona l'etichetta del mese basandosi sui giorni totali trascorsi
+            let currentWeekIndex = Math.floor((startOffset + daysPassedCounter) / 7);
             let label = document.createElement('span');
             label.className = 'month-label';
             label.innerText = months[m];
@@ -345,15 +360,15 @@
 
                 pixel.addEventListener('click', () => openModal(m, d, dayId));
                 grid.appendChild(pixel);
+                
+                daysPassedCounter++;
             }
-            monthOffsetAccumulator += daysInMonth[m];
         }
 
-        // 6. AVVIO (Legge dai salvataggi o imposta i default su 'html')
+        // 6. AVVIO
         setTheme(localStorage.getItem('pixels-theme') || 'light');
         setPalette(localStorage.getItem('pixels-palette') || 'green');
         
-        // Colora la griglia coi dati salvati
         updateGridColors();
 
         // --- GESTIONE MODALE ---
