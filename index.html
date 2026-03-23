@@ -3,20 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aesthetic Year in Pixels</title>
+    <title>Year in Pixels</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
         :root {
-            /* Palette Mood (Pastello Elegante) */
-            --mood-excited: #FFB5A7; /* Corallo chiaro */
-            --mood-happy: #C1E1C1;   /* Verde salvia */
-            --mood-neutral: #E8DFF5; /* Lilla grigiastro */
-            --mood-sad: #A0C4FF;     /* Azzurro polvere */
-            --mood-terrible: #BDB2FF;/* Viola pastello */
-            --mood-none: rgba(150, 150, 150, 0.1); /* Vuoto */
-
-            /* Tema Base: Light (Default) */
+            /* TEMA BASE: Light */
             --page-bg: #FFFFFF;
             --text-main: #5C5552;
             --text-muted: #9E9490;
@@ -24,97 +16,149 @@
             --modal-border: rgba(255, 255, 255, 0.5);
             --input-bg: #FCFAFA;
             --input-border: #E6DCD9;
+            --mood-none: #ebedf0; /* Colore casella vuota chiaro */
+            --note-dot: rgba(0, 0, 0, 0.4);
+
+            /* PALETTE PREDEFINITA: Verde (Stile GitHub) */
+            --mood-terrible: #d3f9d8; /* Livello 1 (Chiarissimo) */
+            --mood-sad: #8ce99a;      /* Livello 2 */
+            --mood-neutral: #40c057;  /* Livello 3 */
+            --mood-happy: #2b8a3e;    /* Livello 4 */
+            --mood-excited: #085b10;  /* Livello 5 (Scurissimo) */
         }
 
+        /* --- TEMI DI SFONDO (Light, Beige, Dark) --- */
         [data-theme="beige"] {
             --page-bg: #F7F6F3;
-            --modal-bg: rgba(247, 246, 243, 0.75);
+            --modal-bg: rgba(247, 246, 243, 0.85);
             --modal-border: rgba(255, 255, 255, 0.4);
-            --input-bg: #F0EAE6;
-            --input-border: #DCD3CE;
+            --input-bg: #F0EAE6; --input-border: #DCD3CE;
+            --mood-none: #E6DFDB; --note-dot: rgba(0, 0, 0, 0.4);
         }
 
         [data-theme="dark"] {
             --page-bg: #191919;
-            --text-main: #EBEBEB;
-            --text-muted: #888888;
-            --modal-bg: rgba(40, 40, 40, 0.75);
+            --text-main: #EBEBEB; --text-muted: #888888;
+            --modal-bg: rgba(40, 40, 40, 0.85);
             --modal-border: rgba(80, 80, 80, 0.5);
-            --input-bg: #2C2C2C;
-            --input-border: #444444;
-            --mood-none: rgba(255, 255, 255, 0.05);
+            --input-bg: #2C2C2C; --input-border: #444444;
+            --mood-none: #2d333b; /* Colore casella vuota scuro */
+            --note-dot: rgba(255, 255, 255, 0.8);
+        }
+
+        /* --- PALETTE COLORI (Scale Monocromatiche) --- */
+        [data-palette="blue"] {
+            --mood-terrible: #d0ebff;
+            --mood-sad: #74c0fc;
+            --mood-neutral: #228be6;
+            --mood-happy: #1864ab;
+            --mood-excited: #0b2b5e;
+        }
+        [data-palette="purple"] {
+            --mood-terrible: #f3d9fa;
+            --mood-sad: #e599f7;
+            --mood-neutral: #cc5de8;
+            --mood-happy: #9c36b5;
+            --mood-excited: #501a61;
+        }
+        [data-palette="pink"] {
+            --mood-terrible: #ffdeeb;
+            --mood-sad: #faa2c1;
+            --mood-neutral: #f06595;
+            --mood-happy: #a61e4d;
+            --mood-excited: #5c0b27;
         }
 
         body, html {
-            margin: 0; padding: 20px 10px;
+            margin: 0; padding: 10px;
             background-color: var(--page-bg);
             font-family: 'Poppins', sans-serif; color: var(--text-main);
             display: flex; flex-direction: column; align-items: center;
             transition: background-color 0.4s ease;
-            overflow-x: hidden;
         }
 
-        /* --- CONTROLLI (Sfondo) --- */
-        .controls {
-            display: flex; gap: 15px; margin-bottom: 25px;
-            background: var(--mood-none); padding: 8px 16px; border-radius: 20px;
+        /* --- CONTROLLI (Sfondo e Palette) --- */
+        .controls-container {
+            display: flex; gap: 20px; margin-bottom: 25px; padding: 10px 20px;
+            background-color: rgba(128, 128, 128, 0.05); border-radius: 25px;
+            flex-wrap: wrap; justify-content: center;
         }
-        .theme-dot {
+        .picker-group { display: flex; gap: 10px; align-items: center; }
+        .picker-label { font-size: 10px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; margin-right: 5px; }
+        .picker-separator { width: 1px; height: 16px; background-color: var(--text-muted); opacity: 0.3; }
+
+        .color-dot {
             width: 16px; height: 16px; border-radius: 50%; cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid rgba(0,0,0,0.1);
             transition: transform 0.2s ease;
         }
-        .theme-dot:hover { transform: scale(1.2); }
+        .color-dot:hover { transform: scale(1.2); }
 
         /* --- LEGENDA --- */
         .legend {
             display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
-            margin-bottom: 30px; font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 15px; font-size: 11px; font-weight: 500; text-transform: uppercase;
         }
         .legend-item { display: flex; align-items: center; gap: 6px; color: var(--text-muted); }
-        .legend-color { width: 12px; height: 12px; border-radius: 4px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 3px; }
 
-        /* --- HEATMAP (Griglia) --- */
-        .heatmap-wrapper {
-            display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; max-width: 900px;
+        /* --- GRAFICO GITHUB STYLE --- */
+        .graph-wrapper {
+            display: flex; align-items: flex-end; gap: 8px;
+            max-width: 100%; overflow-x: auto; padding-bottom: 15px;
         }
-        .month-container {
-            display: flex; flex-direction: column; gap: 5px;
+        
+        /* Giorni della settimana a sinistra */
+        .day-labels {
+            display: flex; flex-direction: column; justify-content: space-between;
+            height: 108px; /* 7 righe da 12px + 6 gap da 4px */
+            font-size: 10px; color: var(--text-muted); padding-bottom: 2px;
+            position: relative; width: 25px;
         }
-        .month-title {
-            font-size: 10px; font-weight: 600; text-transform: uppercase; color: var(--text-muted);
-            margin-bottom: 2px; text-align: left; letter-spacing: 1px;
-        }
-        .days-grid {
-            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;
+        .day-labels span { position: absolute; height: 12px; line-height: 12px; }
+        .day-labels span:nth-child(1) { top: 16px; } /* Martedì (1° indice partendo da 0) */
+        .day-labels span:nth-child(2) { top: 48px; } /* Giovedì (3° indice) */
+        .day-labels span:nth-child(3) { top: 80px; } /* Sabato (5° indice) */
+
+        /* Contenitore Mesi e Griglia */
+        .graph-scrollable { position: relative; display: flex; flex-direction: column; }
+        
+        .month-labels { position: relative; height: 20px; width: 100%; margin-bottom: 4px; }
+        .month-label { position: absolute; font-size: 10px; font-weight: 500; color: var(--text-muted); bottom: 0; }
+        
+        /* La vera e propria matrice che scorre in orizzontale */
+        .pixels-grid {
+            display: grid;
+            grid-template-rows: repeat(7, 12px); /* 7 righe, una per ogni giorno della settimana */
+            grid-auto-flow: column; /* Scorre aggiungendo colonne verso destra! */
+            gap: 4px;
         }
         
         /* IL PIXEL DEL GIORNO */
         .day-pixel {
-            width: clamp(12px, 2vw, 16px); height: clamp(12px, 2vw, 16px);
-            background-color: var(--mood-none); border-radius: 4px;
-            cursor: pointer; transition: transform 0.1s ease, box-shadow 0.2s ease;
+            width: 12px; height: 12px; border-radius: 3px;
+            background-color: var(--mood-none);
+            cursor: pointer; transition: transform 0.1s ease;
             position: relative;
         }
-        .day-pixel:hover {
-            transform: scale(1.2); box-shadow: 0 2px 6px rgba(0,0,0,0.15); z-index: 2;
+        .day-pixel:not(.empty):hover {
+            transform: scale(1.3); box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 2;
         }
-        
-        /* Puntino che indica la presenza di una nota */
-        .day-pixel.has-note::after {
-            content: ''; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%); width: 3px; height: 3px;
-            background-color: rgba(255,255,255,0.8); border-radius: 50%;
-        }
-        [data-theme="light"] .day-pixel.has-note::after, [data-theme="beige"] .day-pixel.has-note::after {
-            background-color: rgba(0,0,0,0.3);
+        .day-pixel.empty {
+            background-color: transparent !important; pointer-events: none;
         }
 
-        /* --- FINESTRA MODALE (Glassmorphism) --- */
+        /* Puntino Appunti */
+        .day-pixel.has-note::after {
+            content: ''; position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); width: 4px; height: 4px;
+            background-color: var(--note-dot); border-radius: 50%;
+        }
+
+        /* --- FINESTRA MODALE --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(8px); /* Effetto vetro sfocato */
-            -webkit-backdrop-filter: blur(8px);
+            background: rgba(0, 0, 0, 0.1); backdrop-filter: blur(8px);
             display: none; justify-content: center; align-items: center; z-index: 1000;
             opacity: 0; transition: opacity 0.3s ease;
         }
@@ -128,32 +172,27 @@
         }
         .modal-overlay.show .modal-content { transform: translateY(0); }
 
-        .modal-title { font-size: 18px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
+        .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: var(--text-main); }
         
-        .mood-selector {
-            display: flex; justify-content: center; gap: 12px; margin-bottom: 20px;
-        }
+        .mood-selector { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .mood-option {
-            width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+            width: 25px; height: 25px; border-radius: 5px; cursor: pointer;
             border: 2px solid transparent; transition: all 0.2s ease;
         }
         .mood-option.selected { transform: scale(1.1); border-color: var(--text-main); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         .mood-option:hover { transform: scale(1.1); }
 
         .note-area {
-            width: 100%; height: 100px; padding: 12px; box-sizing: border-box;
+            width: 100%; height: 90px; padding: 12px; box-sizing: border-box;
             background: var(--input-bg); border: 1px solid var(--input-border);
-            border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 13px;
+            border-radius: 12px; font-family: 'Poppins', sans-serif; font-size: 12px;
             color: var(--text-main); resize: none; margin-bottom: 20px; outline: none;
-            transition: border-color 0.3s ease;
         }
-        .note-area:focus { border-color: var(--text-muted); }
-        .note-area::placeholder { color: var(--text-muted); opacity: 0.6; }
-
+        
         .btn-group { display: flex; gap: 10px; justify-content: center; }
         .btn {
             padding: 8px 20px; border-radius: 10px; font-family: 'Poppins', sans-serif;
-            font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease;
+            font-size: 12px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s ease;
         }
         .btn-cancel { background: var(--mood-none); color: var(--text-main); }
         .btn-save { background: var(--text-main); color: var(--page-bg); }
@@ -163,37 +202,57 @@
 </head>
 <body>
 
-    <div class="controls">
-        <div class="theme-dot" style="background: #FFFFFF;" onclick="setTheme('light')" title="Tema Chiaro"></div>
-        <div class="theme-dot" style="background: #F7F6F3;" onclick="setTheme('beige')" title="Tema Beige"></div>
-        <div class="theme-dot" style="background: #191919; border-color:#555;" onclick="setTheme('dark')" title="Tema Scuro"></div>
+    <div class="controls-container">
+        <div class="picker-group">
+            <span class="picker-label">Sfondo:</span>
+            <div class="color-dot" style="background: #FFFFFF;" onclick="setTheme('light')"></div>
+            <div class="color-dot" style="background: #F7F6F3;" onclick="setTheme('beige')"></div>
+            <div class="color-dot" style="background: #191919; border-color:#555;" onclick="setTheme('dark')"></div>
+        </div>
+        <div class="picker-separator"></div>
+        <div class="picker-group">
+            <span class="picker-label">Palette:</span>
+            <div class="color-dot" style="background: #40c057;" onclick="setPalette('green')"></div>
+            <div class="color-dot" style="background: #228be6;" onclick="setPalette('blue')"></div>
+            <div class="color-dot" style="background: #cc5de8;" onclick="setPalette('purple')"></div>
+            <div class="color-dot" style="background: #f06595;" onclick="setPalette('pink')"></div>
+        </div>
     </div>
 
     <div class="legend">
-        <div class="legend-item"><div class="legend-color" style="background: var(--mood-excited)"></div> Excited</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--mood-happy)"></div> Happy</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--mood-neutral)"></div> Neutral</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--mood-sad)"></div> Sad</div>
-        <div class="legend-item"><div class="legend-color" style="background: var(--mood-terrible)"></div> Terrible</div>
+        <span style="color: var(--text-muted); font-size: 10px; margin-right: 5px;">Terrible</span>
+        <div class="legend-color" style="background: var(--mood-terrible)"></div>
+        <div class="legend-color" style="background: var(--mood-sad)"></div>
+        <div class="legend-color" style="background: var(--mood-neutral)"></div>
+        <div class="legend-color" style="background: var(--mood-happy)"></div>
+        <div class="legend-color" style="background: var(--mood-excited)"></div>
+        <span style="color: var(--text-muted); font-size: 10px; margin-left: 5px;">Excited</span>
     </div>
 
-    <div class="heatmap-wrapper" id="heatmap"></div>
+    <div class="graph-wrapper">
+        <div class="day-labels">
+            <span>Mar</span>
+            <span>Gio</span>
+            <span>Sab</span>
+        </div>
+        <div class="graph-scrollable">
+            <div class="month-labels" id="month-labels"></div>
+            <div class="pixels-grid" id="pixels-grid"></div>
+        </div>
+    </div>
 
     <div class="modal-overlay" id="modal">
         <div class="modal-content">
-            <div class="modal-title" id="modal-date">Giorno</div>
-            
-            <div class="mood-selector" id="mood-selector">
-                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)" title="Excited"></div>
-                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)" title="Happy"></div>
-                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)" title="Neutral"></div>
-                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)" title="Sad"></div>
-                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)" title="Terrible"></div>
-                <div class="mood-option" data-mood="none" style="background: var(--mood-none); border: 1px dashed var(--text-muted);" title="Rimuovi"></div>
+            <div class="modal-title" id="modal-date">Data</div>
+            <div class="mood-selector">
+                <div class="mood-option" data-mood="terrible" style="background: var(--mood-terrible)"></div>
+                <div class="mood-option" data-mood="sad" style="background: var(--mood-sad)"></div>
+                <div class="mood-option" data-mood="neutral" style="background: var(--mood-neutral)"></div>
+                <div class="mood-option" data-mood="happy" style="background: var(--mood-happy)"></div>
+                <div class="mood-option" data-mood="excited" style="background: var(--mood-excited)"></div>
+                <div class="mood-option" data-mood="none" style="background: transparent; border: 1px dashed var(--text-muted);"></div>
             </div>
-
-            <textarea class="note-area" id="note-input" placeholder="Perché mi sento così oggi? Scrivi un appunto..."></textarea>
-            
+            <textarea class="note-area" id="note-input" placeholder="Aggiungi una nota a questa giornata..."></textarea>
             <div class="btn-group">
                 <button class="btn btn-cancel" onclick="closeModal()">Annulla</button>
                 <button class="btn btn-save" onclick="saveData()">Salva</button>
@@ -202,139 +261,141 @@
     </div>
 
     <script>
-        // --- 1. SETUP INIZIALE E DATI ---
-        const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
-        // Usiamo 29 per Febbraio così copriamo anche gli anni bisestili senza problemi
-        const daysInMonth = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]; 
-        
+        // --- SETUP E DATI ---
+        const savedData = JSON.parse(localStorage.getItem('notion-year-in-pixels')) || {};
         let currentDayId = null;
         let selectedMood = 'none';
 
-        // Recupera tutti i salvataggi dal browser
-        const savedData = JSON.parse(localStorage.getItem('notion-year-in-pixels')) || {};
-
-        // --- 2. GESTIONE TEMI ---
+        // --- GESTIONE CONTROLLI ---
         function setTheme(theme) {
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('pixels-theme', theme);
         }
+        function setPalette(palette) {
+            document.documentElement.setAttribute('data-palette', palette);
+            localStorage.setItem('pixels-palette', palette);
+            // Forza aggiornamento colori dei pixel già colorati
+            updateGridColors(); 
+        }
+        
         setTheme(localStorage.getItem('pixels-theme') || 'light');
+        setPalette(localStorage.getItem('pixels-palette') || 'green');
 
-        // --- 3. GENERAZIONE DELLA HEATMAP ---
-        const heatmap = document.getElementById('heatmap');
+        // --- GENERAZIONE GRAFICO ---
+        const grid = document.getElementById('pixels-grid');
+        const monthLabels = document.getElementById('month-labels');
+        
+        // Calcolo date dinamico sull'anno in corso
+        const year = new Date().getFullYear();
+        const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+        const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+        const months = ["Gen", "Feb", "Mar", "Apr", "Mag", "Giu", "Lug", "Ago", "Set", "Ott", "Nov", "Dic"];
+
+        // Trova da che giorno inizia l'anno (0=Domenica, 1=Lunedì)
+        // La griglia va da Lunedì a Domenica
+        let firstDay = new Date(year, 0, 1).getDay();
+        let startOffset = firstDay === 0 ? 6 : firstDay - 1; 
+
+        // Riempi i buchi vuoti prima dell'1 Gennaio (es. se inizia di Mercoledì, Lun e Mar sono vuoti)
+        for (let i = 0; i < startOffset; i++) {
+            let empty = document.createElement('div');
+            empty.className = 'day-pixel empty';
+            grid.appendChild(empty);
+        }
+
+        let dayOfYear = 0;
 
         for (let m = 0; m < 12; m++) {
-            // Crea il blocco del mese
-            const monthDiv = document.createElement('div');
-            monthDiv.className = 'month-container';
-            
-            const monthTitle = document.createElement('div');
-            monthTitle.className = 'month-title';
-            monthTitle.innerText = months[m];
-            monthDiv.appendChild(monthTitle);
+            // Calcola in che colonna (settimana) posizionare la scritta del mese
+            let weekIndex = Math.floor((dayOfYear + startOffset) / 7);
+            let label = document.createElement('span');
+            label.className = 'month-label';
+            label.innerText = months[m];
+            // Larghezza colonna = 12px + 4px gap = 16px
+            label.style.left = `calc(${weekIndex} * 16px)`;
+            monthLabels.appendChild(label);
 
-            const grid = document.createElement('div');
-            grid.className = 'days-grid';
-
-            // Genera i giorni di quel mese
             for (let d = 1; d <= daysInMonth[m]; d++) {
-                const dayId = `${m}-${d}`; // Es. "0-15" per 15 Gennaio
+                const dayId = `${m}-${d}`;
                 const pixel = document.createElement('div');
                 pixel.className = 'day-pixel';
                 pixel.id = `pixel-${dayId}`;
-                pixel.title = `${d} ${months[m]}`; // Mostra la data se ci passi sopra col mouse
+                
+                // HOVER NATIVO: Al passaggio del mouse mostra data ed estensione
+                pixel.title = `${d} ${months[m]}`; 
 
-                // Carica i dati salvati per colorare il pixel e mettere il puntino della nota
-                if (savedData[dayId]) {
-                    if (savedData[dayId].mood && savedData[dayId].mood !== 'none') {
-                        pixel.style.backgroundColor = `var(--mood-${savedData[dayId].mood})`;
-                    }
-                    if (savedData[dayId].note && savedData[dayId].note.trim() !== "") {
-                        pixel.classList.add('has-note');
-                    }
-                }
-
-                // Cliccando sul pixel si apre la modale
                 pixel.addEventListener('click', () => openModal(m, d, dayId));
                 grid.appendChild(pixel);
+                
+                dayOfYear++;
             }
-            monthDiv.appendChild(grid);
-            heatmap.appendChild(monthDiv);
         }
 
-        // --- 4. GESTIONE FINESTRA MODALE ---
+        // --- GESTIONE COLORI E MODALE ---
+        function updateGridColors() {
+            for (let m = 0; m < 12; m++) {
+                for (let d = 1; d <= daysInMonth[m]; d++) {
+                    const dayId = `${m}-${d}`;
+                    const pixel = document.getElementById(`pixel-${dayId}`);
+                    if (!pixel) continue;
+                    
+                    if (savedData[dayId]) {
+                        if (savedData[dayId].mood && savedData[dayId].mood !== 'none') {
+                            // Legge il colore vivo dalla variabile CSS della palette scelta
+                            pixel.style.backgroundColor = `var(--mood-${savedData[dayId].mood})`;
+                        } else {
+                            pixel.style.backgroundColor = 'var(--mood-none)';
+                        }
+                        if (savedData[dayId].note && savedData[dayId].note.trim() !== "") {
+                            pixel.classList.add('has-note');
+                        } else {
+                            pixel.classList.remove('has-note');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Coloriamo la griglia al primissimo caricamento
+        updateGridColors();
+
         const modal = document.getElementById('modal');
         const noteInput = document.getElementById('note-input');
         const moodOptions = document.querySelectorAll('.mood-option');
 
         function openModal(monthIndex, day, dayId) {
             currentDayId = dayId;
-            document.getElementById('modal-date').innerText = `${day} ${months[monthIndex]}`;
+            document.getElementById('modal-date').innerText = `${day} ${months[monthIndex]} ${year}`;
             
-            // Carica dati del giorno
             const dayData = savedData[dayId] || { mood: 'none', note: '' };
             selectedMood = dayData.mood;
             noteInput.value = dayData.note;
 
-            // Aggiorna la selezione visiva dei pallini dell'umore
-            updateMoodSelectionUI();
+            moodOptions.forEach(opt => opt.classList.remove('selected'));
+            const activeOpt = document.querySelector(`.mood-option[data-mood="${selectedMood}"]`);
+            if(activeOpt) activeOpt.classList.add('selected');
 
             modal.classList.add('show');
         }
 
-        function closeModal() {
-            modal.classList.remove('show');
-        }
+        function closeModal() { modal.classList.remove('show'); }
 
-        // Gestisce il click sui pallini dell'umore dentro la modale
         moodOptions.forEach(opt => {
             opt.addEventListener('click', (e) => {
                 selectedMood = e.target.getAttribute('data-mood');
-                updateMoodSelectionUI();
+                moodOptions.forEach(o => o.classList.remove('selected'));
+                e.target.classList.add('selected');
             });
         });
 
-        function updateMoodSelectionUI() {
-            moodOptions.forEach(opt => opt.classList.remove('selected'));
-            const activeOpt = document.querySelector(`.mood-option[data-mood="${selectedMood}"]`);
-            if(activeOpt) activeOpt.classList.add('selected');
-        }
-
-        // Salva i dati e aggiorna il pixel
         function saveData() {
-            const noteText = noteInput.value;
-            
-            // Aggiorna l'oggetto in memoria
-            savedData[currentDayId] = {
-                mood: selectedMood,
-                note: noteText
-            };
-            
-            // Salva nel browser
+            savedData[currentDayId] = { mood: selectedMood, note: noteInput.value };
             localStorage.setItem('notion-year-in-pixels', JSON.stringify(savedData));
-
-            // Aggiorna visivamente il pixel sulla dashboard
-            const pixel = document.getElementById(`pixel-${currentDayId}`);
-            
-            if (selectedMood !== 'none') {
-                pixel.style.backgroundColor = `var(--mood-${selectedMood})`;
-            } else {
-                pixel.style.backgroundColor = 'var(--mood-none)';
-            }
-
-            if (noteText.trim() !== "") {
-                pixel.classList.add('has-note');
-            } else {
-                pixel.classList.remove('has-note');
-            }
-
+            updateGridColors(); // Ricolora il pixel aggiornato
             closeModal();
         }
 
-        // Permette di chiudere la modale cliccando fuori (nello sfondo sfocato)
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) closeModal();
-        });
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
     </script>
 </body>
