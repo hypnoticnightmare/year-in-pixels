@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub Style Year in Pixels 4.0 - Backup Edition</title>
+    <title>Year in Pixels</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
 
@@ -171,7 +171,8 @@
 
     </style>
 </head>
-<body data-palette="green">
+
+<body>
 
     <div class="controls-container">
         <div class="picker-group">
@@ -257,10 +258,8 @@
         let currentDayId = null;
         let selectedMood = 'none';
 
-        // --- GESTIONE BACKUP E RIPRISTINO ---
         function exportData() {
             let backupData = {};
-            // Raccoglie tutti i dati di tutti gli anni salvati nel browser
             for (let i = 0; i < localStorage.length; i++) {
                 let key = localStorage.key(i);
                 if (key.startsWith('notion-pixels-')) {
@@ -268,7 +267,6 @@
                 }
             }
             
-            // Crea il file scaricabile
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
@@ -286,25 +284,21 @@
             reader.onload = function(e) {
                 try {
                     const importedData = JSON.parse(e.target.result);
-                    // Sovrascrive i dati locali con quelli del file
                     for (let key in importedData) {
                         if (key.startsWith('notion-pixels-')) {
                             localStorage.setItem(key, importedData[key]);
                         }
                     }
                     alert("Backup caricato con successo! I tuoi dati sono stati ripristinati.");
-                    // Ricarica la griglia dell'anno corrente
                     renderCalendar(currentYear);
                 } catch (error) {
                     alert("Errore: Il file selezionato non è un backup valido.");
                 }
             };
             reader.readAsText(file);
-            // Resetta l'input per permettere di ricaricare lo stesso file in futuro
             event.target.value = ''; 
         }
 
-        // --- GESTIONE DATI PER ANNO ---
         function loadDataForYear(targetYear) {
             try {
                 let oldDataStr = localStorage.getItem('notion-year-in-pixels');
@@ -346,7 +340,6 @@
             }
         }
 
-        // --- GENERAZIONE CALENDARIO ---
         function renderCalendar(yearToRender) {
             document.getElementById('year-display').innerText = yearToRender;
             loadDataForYear(yearToRender);
@@ -403,6 +396,8 @@
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('pixels-theme', theme);
         }
+        
+        // IL FIX E' QUI: Imposta la palette sull'elemento principale della pagina (documentElement)
         function setPalette(palette) {
             document.documentElement.setAttribute('data-palette', palette);
             localStorage.setItem('pixels-palette', palette);
